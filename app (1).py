@@ -35,7 +35,7 @@ with st.form("prediction_form"):
             col.replace("_", " ").title(),
             min_value=float(info["min"]),
             max_value=float(info["max"]),
-            value=float(info["median])
+            value=float(info["median"])
         )
 
     submitted = st.form_submit_button("Predict Bike Rentals")
