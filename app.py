@@ -1,4 +1,6 @@
 import json
+from pathlib import Path
+
 import joblib
 import pandas as pd
 import streamlit as st
@@ -8,14 +10,28 @@ st.set_page_config(
     page_icon="🚲"
 )
 
+BASE = Path(__file__).parent
+
+
 @st.cache_resource
 def load_model():
-    model = joblib.load("bike_rental_best_model.pkl")
-    with open("metadata.json", "r") as f:
+    # Finds the model file even if its name is "bike_rental_best_model.pkl"
+    # or "bike_rental_best_model (1).pkl"
+    candidates = sorted(BASE.glob("bike_rental_best_model*.pkl"))
+    if not candidates:
+        raise FileNotFoundError("No bike_rental_best_model*.pkl file found in the repository.")
+    model = joblib.load(candidates[0])
+    with open(BASE / "metadata.json", "r") as f:
         metadata = json.load(f)
     return model, metadata
 
-model, metadata = load_model()
+
+try:
+    model, metadata = load_model()
+except Exception as e:
+    st.error(f"Could not load the model: {type(e).__name__}: {e}")
+    st.info("Files found next to app.py: " + ", ".join(sorted(p.name for p in BASE.iterdir())))
+    st.stop()
 
 st.title("Bike Rental Demand Prediction 🚲")
 st.write("Predict bike rental demand using weather and time information.")
